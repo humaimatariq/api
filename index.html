@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joke API Examples</title>
+</head>
+<body>
+    <h1>Joke API Examples</h1>
+    <div id="callback-result"></div>
+    <div id="async-result"></div>
+    <div id="promise-result"></div>
+    <div id="await-result"></div>
+
+    <script>
+        const apiURL = "https://v2.jokeapi.dev/joke/Any";
+
+        function formatJoke(data) {
+            return data.type === "single" ? data.joke : `${data.setup} - ${data.delivery}`;
+        }
+
+        // Callback Example
+        function fetchWithCallback(url, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url);
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    callback(null, JSON.parse(xhr.responseText));
+                } else {
+                    callback(`Error: ${xhr.status}`);
+                }
+            };
+            xhr.onerror = () => callback("Network Error");
+            xhr.send();
+        }
+
+        fetchWithCallback(apiURL, (error, data) => {
+            const result = document.getElementById("callback-result");
+            if (error) {
+                result.innerText = `Callback Error: ${error}`;
+            } else {
+                result.innerText = `Callback Result: ${formatJoke(data)}`;
+            }
+        });
+
+        // Asynchronous Example
+        function fetchWithAsync(url) {
+            const result = document.getElementById("async-result");
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    result.innerText = `Asynchronous Result: ${formatJoke(data)}`;
+                })
+                .catch(error => {
+                    result.innerText = `Asynchronous Error: ${error}`;
+                });
+        }
+        fetchWithAsync(apiURL);
+
+        // Promise Example
+        function fetchWithPromise(url) {
+            return new Promise((resolve, reject) => {
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) reject(`HTTP error! status: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => resolve(data))
+                    .catch(error => reject(error));
+            });
+        }
+
+        fetchWithPromise(apiURL)
+            .then(data => {
+                document.getElementById("promise-result").innerText = `Promise Result: ${formatJoke(data)}`;
+            })
+            .catch(error => {
+                document.getElementById("promise-result").innerText = `Promise Error: ${error}`;
+            });
+
+        // Async/Await Example
+        async function fetchWithAwait(url) {
+            const result = document.getElementById("await-result");
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                result.innerText = `Async/Await Result: ${formatJoke(data)}`;
+            } catch (error) {
+                result.innerText = `Async/Await Error: ${error}`;
+            }
+        }
+        fetchWithAwait(apiURL);
+    </script>
+</body>
+</html>
